@@ -1,11 +1,17 @@
-var greekLetterNames = [ 'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega' ];
+var greekLetterNames = [ 'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega', "turn", "line" ];
 
 function convertLatexShortcuts(text) {
 	// html greek characters
 	for(var i = 0; i < greekLetterNames.length; i++) {
 		var name = greekLetterNames[i];
-		text = text.replace(new RegExp('\\\\' + name, 'g'), String.fromCharCode(913 + i + (i > 16)));
-		text = text.replace(new RegExp('\\\\' + name.toLowerCase(), 'g'), String.fromCharCode(945 + i + (i > 16)));
+		if(name == "turn"){
+			text = text.replace(new RegExp('\\\\' + name.toLowerCase(), 'g'), "⊢");
+		} else if (name == "line") {
+			text = text.replace(new RegExp('\\\\' + name.toLowerCase(), 'g'), "\n");
+		} else {
+			text = text.replace(new RegExp('\\\\' + name, 'g'), String.fromCharCode(913 + i + (i > 16)));
+			text = text.replace(new RegExp('\\\\' + name.toLowerCase(), 'g'), String.fromCharCode(945 + i + (i > 16)));
+		}
 	}
 
 	// subscripts
@@ -46,8 +52,14 @@ function canvasHasFocus() {
 
 function drawText(c, originalText, x, y, angleOrNull, isSelected) {
 	text = convertLatexShortcuts(originalText);
+	var longest = text.split("\n").sort(
+		function (a, b) {
+			return b.length - a.length;
+		}
+	)[0];
 	c.font = '20px "Times New Roman", serif';
-	var width = c.measureText(text).width;
+
+	var width = c.measureText(length).width;
 
 	// center the text
 	x -= width / 2;
@@ -69,7 +81,11 @@ function drawText(c, originalText, x, y, angleOrNull, isSelected) {
 	} else {
 		x = Math.round(x);
 		y = Math.round(y);
-		c.fillText(text, x, y + 6);
+		let currLine = y + 6
+		text.split("\n").forEach(t => {
+			c.fillText(t, x, currLine);
+			currLine +=18
+		})
 		if(isSelected && caretVisible && canvasHasFocus() && document.hasFocus()) {
 			x += width;
 			c.beginPath();
